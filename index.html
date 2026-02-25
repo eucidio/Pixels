@@ -1,0 +1,906 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Montessorischule Stadt Kleve – Pixel-Malerei 🎨</title>
+
+  <style>
+    body{
+      background:#A3D8F4;
+      font-family:'Comic Sans MS',sans-serif;
+      display:flex; flex-direction:column; align-items:center;
+      padding:20px;
+    }
+    .card{
+      background:#fff;
+      padding:25px;
+      border-radius:30px;
+      border:6px solid #5271FF;
+      text-align:center;
+      max-width:1180px;
+      width:95%;
+      box-shadow:10px 10px 0 #FF5757;
+    }
+    .school{
+      font-size:1.15rem; font-weight:bold; color:#1f2937;
+      background:#eef2ff; border:2px solid #c7d2fe;
+      border-radius:999px; padding:8px 12px;
+      display:inline-block; margin-bottom:8px;
+    }
+    h1{ color:#5271FF; margin:0; }
+    p{ font-weight:bold; color:#333; margin:8px 0 0; }
+
+    .row{
+      display:flex; gap:10px; flex-wrap:wrap;
+      justify-content:center; align-items:center;
+      margin-top:10px;
+    }
+    .btn{
+      border:none; padding:12px 18px; font-size:1rem;
+      border-radius:999px; cursor:pointer; font-weight:bold; margin:5px;
+      transition:transform .05s ease-in-out;
+    }
+    .btn:active{ transform:scale(0.98); }
+    .btn-back  { background:#f59e0b; color:#1f2937; }
+    .btn-reset { background:#5271FF; color:#fff; }
+    .btn-print { background:#111827; color:#fff; }
+    .btn-dl    { background:#7c3aed; color:#fff; }
+
+    .controls{
+      background:#FFF9C4;
+      padding:15px;
+      border-radius:20px;
+      margin:15px 0;
+      border:3px dashed #FFB300;
+    }
+    .pill{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:6px 10px; border-radius:999px;
+      background:#eef2ff; border:2px solid #c7d2fe;
+      font-weight:bold; color:#1f2937; font-size:0.95rem;
+    }
+    input[type="range"]{ width:220px; }
+
+    /* Gallery */
+    #galleryView{ display:block; }
+    .galleryGrid{
+      display:grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap:14px;
+      margin-top:16px;
+    }
+    .tile{
+      background:#ffffff;
+      border:3px solid #c7d2fe;
+      border-radius:18px;
+      padding:10px;
+      cursor:pointer;
+      box-shadow: 6px 6px 0 rgba(17,24,39,0.12);
+      transition: transform .08s ease, box-shadow .08s ease;
+      user-select:none;
+    }
+    .tile:active{ transform: scale(0.98); }
+    .thumb{
+      width:100%;
+      aspect-ratio: 1 / 1;
+      border-radius:14px;
+      background:#f3f4f6;
+      overflow:hidden;
+      display:flex; align-items:center; justify-content:center;
+      border:2px solid rgba(0,0,0,0.08);
+    }
+    .thumb img{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+    }
+    .tileName{
+      margin-top:10px;
+      font-size:1.15rem;
+      font-weight:bold;
+      color:#111827;
+    }
+    .tileSub{
+      margin-top:2px;
+      font-size:0.95rem;
+      font-weight:bold;
+      color:#374151;
+      opacity:0.9;
+    }
+
+    /* App */
+    #appView{ display:none; }
+
+    /* Mode buttons */
+    .modebar{
+      display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:10px;
+    }
+    .modebtn{
+      border:2px solid #111827;
+      background:#fff;
+      color:#111827;
+      padding:10px 14px;
+      border-radius:999px;
+      font-weight:bold;
+      cursor:pointer;
+    }
+    .modebtn.active{
+      background:#111827;
+      color:#fff;
+    }
+
+    /* Preview: constant size; quality changes with pixel level */
+    #previewWrap{
+      display:block;
+      margin:16px auto 8px;
+      border:2px solid #333;
+      background:#fff;
+      max-width:100%;
+      padding:10px;
+      border-radius:14px;
+    }
+    #previewCanvas{
+      display:block;
+      width:min(860px, 100%);
+      height:auto;
+      image-rendering:pixelated;
+      background:#fff;
+      margin:0 auto;
+    }
+
+    #pixel-canvas{
+      display:grid;
+      margin:16px auto;
+      border:2px solid #333;
+      background:#fff;
+      overflow:auto;
+      max-width:100%;
+      touch-action:none;
+      -webkit-user-select:none;
+      user-select:none;
+    }
+    .pixel{
+      width:20px; height:20px;
+      border:1px solid #eeeeee;
+      cursor:pointer;
+      display:flex; align-items:center; justify-content:center;
+      font-size:10px; font-weight:bold; color:#111827;
+    }
+    .pixel:hover{ outline:1px solid #5271FF; outline-offset:-1px; }
+    .no-lines .pixel{ border-color:transparent; }
+    .hide-numbers .pixel{ color:transparent; }
+
+    .palette{
+      display:flex; gap:8px; flex-wrap:wrap; justify-content:center;
+      margin-top:10px;
+    }
+    .swatch{
+      width:34px; height:34px; border-radius:10px;
+      border:3px solid rgba(0,0,0,0.25);
+      cursor:pointer;
+      display:flex; align-items:center; justify-content:center;
+      font-weight:bold; color:#111827;
+      user-select:none;
+      background:#fff;
+    }
+    .swatch.active{ outline:4px solid #111827; outline-offset:2px; }
+
+    .hint{ font-weight:bold; color:#1f2937; margin-top:8px; }
+    .progress{
+      width:320px; max-width:90%;
+      height:16px; border-radius:999px;
+      background:#e5e7eb; overflow:hidden;
+      border:2px solid #9ca3af;
+    }
+    .bar{ height:100%; width:0%; background:#16a34a; }
+    .small{ font-size:0.95rem; font-weight:bold; color:#1f2937; }
+  </style>
+</head>
+
+<body>
+  <div class="card">
+    <div class="school">Montessorischule Stadt Kleve</div>
+    <h1>Pixel-Malerei 🤖🎨</h1>
+    <p>Bild auswählen → Pixelstufe einstellen → Malmodus wählen → Malen</p>
+
+    <!-- GALLERY VIEW -->
+    <div id="galleryView">
+      <div class="controls">
+        <div class="pill">📚 Wähle ein Bild aus der Galerie (keine Downloads nötig).</div>
+      </div>
+
+      <div class="galleryGrid" id="galleryGrid"></div>
+
+      <div class="hint">Tipp: Am iPad einfach tippen – dann startet das Malen sofort.</div>
+    </div>
+
+    <!-- APP VIEW -->
+    <div id="appView">
+      <div class="row">
+        <button class="btn btn-back" id="btnToGallery">⬅ Zurück zur Galerie</button>
+        <button class="btn btn-reset" id="btnReset">🔄 Zurücksetzen</button>
+        <button class="btn btn-print" id="btnPrintPainted">🖨️ Gemaltes Bild drucken</button>
+        <button class="btn btn-dl" id="btnDownload">⬇️ PNG speichern</button>
+        <button class="btn btn-print" id="btnPrintSheet">🧾 Arbeitsblatt drucken</button>
+      </div>
+
+      <div class="controls">
+        <div class="row">
+          <div class="pill">
+            <span>Pixelstufe:</span>
+            <input type="range" id="pixelLevel" min="10" max="70" value="35" />
+            <span id="lvlLabel">35</span>
+          </div>
+
+          <div class="pill">
+            <label style="cursor:pointer;">
+              <input type="checkbox" id="toggleLines" checked /> Linien anzeigen
+            </label>
+          </div>
+
+          <div class="pill">
+            <label style="cursor:pointer;">
+              <input type="checkbox" id="hideNumbers" /> Zahlen ausblenden
+            </label>
+          </div>
+
+          <div class="pill" id="tolWrap">
+            <span>Farbtoleranz:</span>
+            <input type="range" id="tolerance" min="0" max="80" value="25" />
+            <span id="tolLabel">25</span>
+          </div>
+
+          <div class="pill">
+            <span>Farben:</span>
+            <input type="range" id="paletteSize" min="6" max="20" value="12" />
+            <span id="palLabel">12</span>
+          </div>
+        </div>
+
+        <div class="modebar">
+          <button class="modebtn active" id="modeGuided">🎯 Mit Farben wählen</button>
+          <button class="modebtn" id="modeAuto">⚡ Automatisch (Aufdecken)</button>
+          <button class="modebtn" id="modeFree">🌈 Frei malen</button>
+        </div>
+
+        <div class="row" style="margin-top:12px;">
+          <div class="pill"><strong>Status:</strong> <span id="statusMsg">Bereit.</span></div>
+          <div class="pill"><strong>Info:</strong> <span id="gridInfo">–</span></div>
+        </div>
+
+        <div class="row" style="margin-top:12px;">
+          <div class="progress"><div class="bar" id="progressBar"></div></div>
+          <div class="small"><span id="progressText">0%</span> fertig</div>
+        </div>
+
+        <div class="hint" id="modeHint">
+          Mit Farben wählen: Wähle eine Farbe und male passende Felder (mit Toleranz).
+        </div>
+
+        <div class="palette" id="palette"></div>
+      </div>
+
+      <div id="previewWrap">
+        <canvas id="previewCanvas"></canvas>
+      </div>
+
+      <div id="pixel-canvas"></div>
+    </div>
+  </div>
+
+  <canvas id="hiddenCanvas" style="display:none;"></canvas>
+
+  <script>
+    // -----------------------------
+    // Gallery content (Option B)
+    // -----------------------------
+    const GALLERY_ITEMS = [
+      { name: "🐭 Maus",   file: "images/mause.jpg",            sub: "" },
+      { name: "🐲 Drache", file: "images/drachen.jpg",          sub: "" },
+      { name: "🦊 Fuchs",  file: "images/fuchse.jpg",           sub: "" },
+      { name: "🐻 Bär",    file: "images/baren.jpg",            sub: "" },
+      { name: "🦓 Zebra",  file: "images/zebras.jpg",           sub: "" },
+      { name: "🐧 Pinguin",file: "images/pinguine.jpg",         sub: "" },
+      { name: "🐦 Rabe",   file: "images/raben.jpg",            sub: "" },
+      { name: "🏫 Unsere Schule", file: "images/montessori_ganz.jpg", sub: "" },
+    ];
+
+    // -----------------------------
+    // UI refs
+    // -----------------------------
+    const galleryView = document.getElementById('galleryView');
+    const appView = document.getElementById('appView');
+    const galleryGrid = document.getElementById('galleryGrid');
+
+    const btnToGallery = document.getElementById('btnToGallery');
+    const btnReset = document.getElementById('btnReset');
+    const btnPrintPainted = document.getElementById('btnPrintPainted');
+    const btnDownload = document.getElementById('btnDownload');
+    const btnPrintSheet = document.getElementById('btnPrintSheet');
+
+    const grid = document.getElementById('pixel-canvas');
+    const previewCanvas = document.getElementById('previewCanvas');
+    const statusMsg = document.getElementById('statusMsg');
+    const gridInfo = document.getElementById('gridInfo');
+
+    const pixelLevel = document.getElementById('pixelLevel');
+    const lvlLabel = document.getElementById('lvlLabel');
+
+    const toggleLines = document.getElementById('toggleLines');
+    const hideNumbers = document.getElementById('hideNumbers');
+
+    const tolerance = document.getElementById('tolerance');
+    const tolLabel = document.getElementById('tolLabel');
+    const tolWrap = document.getElementById('tolWrap');
+
+    const paletteSize = document.getElementById('paletteSize');
+    const palLabel = document.getElementById('palLabel');
+
+    const paletteEl = document.getElementById('palette');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+
+    const modeGuidedBtn = document.getElementById('modeGuided');
+    const modeAutoBtn = document.getElementById('modeAuto');
+    const modeFreeBtn = document.getElementById('modeFree');
+    const modeHint = document.getElementById('modeHint');
+
+    const hiddenCanvas = document.getElementById('hiddenCanvas');
+    const hCtx = hiddenCanvas.getContext('2d', { willReadFrequently: true });
+    const pCtx = previewCanvas.getContext('2d');
+
+    // -----------------------------
+    // Settings & state
+    // -----------------------------
+    const VISUAL_PIXEL = 20;
+    const PREVIEW_FACTOR = 2;
+
+    let imgObj = null;
+    let isPainting = false;
+
+    let paintCols = 0, paintRows = 0;
+    let previewCols = 0, previewRows = 0;
+
+    let paintRgb = [];   // [{r,g,b}]
+    let painted = [];    // boolean
+
+    // Modes: guided | auto | free
+    let paintMode = "guided";
+
+    // Palette
+    let pal = [];
+    let palIndex = [];
+    let activePalIndex = 0;
+    let eraser = false;
+
+    // -----------------------------
+    // Build gallery
+    // -----------------------------
+    function buildGallery() {
+      galleryGrid.innerHTML = "";
+      GALLERY_ITEMS.forEach(item => {
+        const tile = document.createElement('div');
+        tile.className = "tile";
+        tile.setAttribute("role", "button");
+        tile.setAttribute("tabindex", "0");
+
+        const thumb = document.createElement('div');
+        thumb.className = "thumb";
+
+        const img = document.createElement('img');
+        img.src = item.file;
+        img.alt = item.name;
+        img.loading = "lazy";
+        thumb.appendChild(img);
+
+        const name = document.createElement('div');
+        name.className = "tileName";
+        name.textContent = item.name;
+
+        const sub = document.createElement('div');
+        sub.className = "tileSub";
+        sub.textContent = item.sub || "";
+
+        tile.appendChild(thumb);
+        tile.appendChild(name);
+        tile.appendChild(sub);
+
+        tile.onclick = () => loadFromGallery(item.file, item.name);
+        tile.onkeydown = (e) => {
+          if (e.key === "Enter" || e.key === " ") loadFromGallery(item.file, item.name);
+        };
+
+        galleryGrid.appendChild(tile);
+      });
+    }
+
+    async function loadFromGallery(src, label) {
+      statusMsg.textContent = "Bild wird geladen…";
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      img.onload = () => {
+        imgObj = img;
+        showApp();
+        statusMsg.textContent = `Bild geladen: ${label}`;
+        rebuild();
+        drawPaintGrid();
+      };
+      img.onerror = () => {
+        alert("Bild konnte nicht geladen werden. Prüfe den Pfad in /images/.");
+      };
+      img.src = src;
+    }
+
+    function showGallery(){
+      galleryView.style.display = "block";
+      appView.style.display = "none";
+      grid.innerHTML = "";
+      imgObj = null;
+    }
+    function showApp(){
+      galleryView.style.display = "none";
+      appView.style.display = "block";
+    }
+
+    // -----------------------------
+    // Mode switching
+    // -----------------------------
+    function setPaintMode(m){
+      paintMode = m;
+      modeGuidedBtn.classList.toggle('active', m === "guided");
+      modeAutoBtn.classList.toggle('active', m === "auto");
+      modeFreeBtn.classList.toggle('active', m === "free");
+
+      tolWrap.style.display = (m === "guided") ? "inline-flex" : "none";
+
+      if (m === "guided") {
+        modeHint.textContent = "Mit Farben wählen: Wähle eine Farbe und male passende Felder (mit Toleranz).";
+      } else if (m === "auto") {
+        modeHint.textContent = "Automatisch: Tippe/ziehe und die originalen Farben erscheinen sofort.";
+      } else {
+        modeHint.textContent = "Frei malen: Wähle eine Farbe und male überall (ohne Einschränkung).";
+      }
+    }
+
+    modeGuidedBtn.addEventListener('click', () => setPaintMode("guided"));
+    modeAutoBtn.addEventListener('click', () => setPaintMode("auto"));
+    modeFreeBtn.addEventListener('click', () => setPaintMode("free"));
+
+    // -----------------------------
+    // Controls
+    // -----------------------------
+    btnToGallery.addEventListener('click', showGallery);
+    btnReset.addEventListener('click', resetPaint);
+    btnPrintPainted.addEventListener('click', printPainted);
+    btnDownload.addEventListener('click', downloadPNG);
+    btnPrintSheet.addEventListener('click', printWorksheet);
+
+    pixelLevel.addEventListener('input', () => { lvlLabel.textContent = pixelLevel.value; if (imgObj) rebuild(true); });
+    tolerance.addEventListener('input', () => { tolLabel.textContent = tolerance.value; });
+    paletteSize.addEventListener('input', () => { palLabel.textContent = paletteSize.value; if (imgObj) rebuild(true); });
+
+    toggleLines.addEventListener('change', () => grid.classList.toggle('no-lines', !toggleLines.checked));
+    hideNumbers.addEventListener('change', () => grid.classList.toggle('hide-numbers', hideNumbers.checked));
+
+    // -----------------------------
+    // Rebuild
+    // keepPaint=true tries to keep the painted state when changing sliders (best-effort)
+    // -----------------------------
+    function rebuild(keepPaint=false){
+      if (!imgObj) return;
+
+      const prevPainted = keepPaint ? (painted.slice()) : null;
+
+      paintCols = parseInt(pixelLevel.value, 10);
+      paintRows = Math.max(1, Math.round((imgObj.height / imgObj.width) * paintCols));
+
+      previewCols = Math.min(paintCols * PREVIEW_FACTOR, 220);
+      previewRows = Math.max(1, Math.round((imgObj.height / imgObj.width) * previewCols));
+
+      paintRgb = sampleRgb(imgObj, paintCols, paintRows);
+
+      pal = buildPalette(paintRgb, parseInt(paletteSize.value, 10));
+      palIndex = paintRgb.map(c => nearestPaletteIndex(c, pal));
+      activePalIndex = 0;
+      eraser = false;
+
+      painted = new Array(paintCols * paintRows).fill(false);
+      if (prevPainted) {
+        // If grid size changed, keeping exact mapping is complex; we keep only if same size.
+        if (prevPainted.length === painted.length) painted = prevPainted;
+      }
+
+      updateProgress();
+      drawPreviewFixedSize();
+      buildPaletteUI();
+
+      gridInfo.textContent = `Vorschau: ${previewCols}×${previewRows} • Malgitter: ${paintCols}×${paintRows}`;
+      if (appView.style.display === "block") drawPaintGrid();
+    }
+
+    function sampleRgb(img, c, r){
+      hiddenCanvas.width = c;
+      hiddenCanvas.height = r;
+      hCtx.clearRect(0,0,c,r);
+      hCtx.drawImage(img, 0, 0, c, r);
+      const data = hCtx.getImageData(0, 0, c, r).data;
+      const out = [];
+      for (let i=0; i<data.length; i+=4) out.push({ r:data[i], g:data[i+1], b:data[i+2] });
+      return out;
+    }
+
+    function drawPreviewFixedSize(){
+      previewCanvas.width = previewCols;
+      previewCanvas.height = previewRows;
+      pCtx.imageSmoothingEnabled = false;
+      pCtx.clearRect(0,0,previewCols,previewRows);
+      pCtx.drawImage(imgObj, 0, 0, previewCols, previewRows);
+    }
+
+    // -----------------------------
+    // Palette UI
+    // -----------------------------
+    function buildPaletteUI(){
+      paletteEl.innerHTML = "";
+
+      // Eraser
+      const er = document.createElement('div');
+      er.className = 'swatch' + (eraser ? ' active' : '');
+      er.style.background = '#ffffff';
+      er.title = 'Radierer (weiß)';
+      er.textContent = '🧽';
+      er.onclick = () => { eraser = true; activePalIndex = 0; updateSwatchActive(); };
+      paletteEl.appendChild(er);
+
+      pal.forEach((c, idx) => {
+        const sw = document.createElement('div');
+        sw.className = 'swatch' + (!eraser && idx === activePalIndex ? ' active' : '');
+        sw.style.background = `rgb(${c.r},${c.g},${c.b})`;
+        sw.title = `Farbe ${idx+1}`;
+        sw.textContent = (idx+1);
+        sw.onclick = () => { eraser = false; activePalIndex = idx; updateSwatchActive(); };
+        paletteEl.appendChild(sw);
+      });
+    }
+
+    function updateSwatchActive(){
+      const swatches = paletteEl.querySelectorAll('.swatch');
+      swatches.forEach(s => s.classList.remove('active'));
+      if (eraser) swatches[0].classList.add('active');
+      else swatches[activePalIndex + 1].classList.add('active');
+    }
+
+    // -----------------------------
+    // Quantization helpers (palette)
+    // -----------------------------
+    function buildPalette(colors, k){
+      if (colors.length === 0) return [{r:0,g:0,b:0}];
+      const seeds = [];
+      const step = Math.max(1, Math.floor(colors.length / k));
+      for (let i=0; i<k; i++) seeds.push({ ...colors[Math.min(i*step, colors.length-1)] });
+
+      let centers = seeds;
+      for (let iter=0; iter<6; iter++){
+        const sums = centers.map(() => ({r:0,g:0,b:0,n:0}));
+        for (const c of colors){
+          const j = nearestPaletteIndex(c, centers);
+          sums[j].r += c.r; sums[j].g += c.g; sums[j].b += c.b; sums[j].n++;
+        }
+        centers = centers.map((c, j) => {
+          if (sums[j].n === 0) return c;
+          return {
+            r: Math.round(sums[j].r / sums[j].n),
+            g: Math.round(sums[j].g / sums[j].n),
+            b: Math.round(sums[j].b / sums[j].n),
+          };
+        });
+      }
+
+      const unique = [];
+      for (const c of centers){
+        if (!unique.some(u => dist2(c,u) < 12*12)) unique.push(c);
+      }
+      return unique.slice(0, k);
+    }
+
+    function nearestPaletteIndex(c, palette){
+      let best = 0, bestD = Infinity;
+      for (let i=0; i<palette.length; i++){
+        const d = dist2(c, palette[i]);
+        if (d < bestD){ bestD = d; best = i; }
+      }
+      return best;
+    }
+
+    function dist2(a,b){
+      const dr=a.r-b.r, dg=a.g-b.g, db=a.b-b.b;
+      return dr*dr + dg*dg + db*db;
+    }
+
+    // -----------------------------
+    // Paint grid (iPad touch-friendly)
+    // -----------------------------
+    function drawPaintGrid(){
+      if (!imgObj) return;
+
+      grid.innerHTML = '';
+      grid.classList.toggle('no-lines', !toggleLines.checked);
+      grid.classList.toggle('hide-numbers', hideNumbers.checked);
+
+      grid.style.gridTemplateColumns = `repeat(${paintCols}, ${VISUAL_PIXEL}px)`;
+      grid.style.width = `${paintCols * VISUAL_PIXEL}px`;
+
+      // pointer events
+      grid.onpointerdown = (e) => { isPainting = true; paintFromTarget(e.target); };
+      grid.onpointermove = (e) => { if (isPainting) paintFromTarget(e.target); };
+      window.onpointerup = () => { isPainting = false; };
+
+      // touch fallback
+      grid.ontouchstart = (e) => { e.preventDefault(); isPainting = true; paintTouch(e); };
+      grid.ontouchmove  = (e) => { e.preventDefault(); if (isPainting) paintTouch(e); };
+      grid.ontouchend   = () => { isPainting = false; };
+
+      const total = paintCols * paintRows;
+      for (let i=0; i<total; i++){
+        const div = document.createElement('div');
+        div.className = 'pixel';
+        div.dataset.i = String(i);
+
+        div.style.background = painted[i] ? getComputedStylePaintColor(i, null) : 'white';
+        div.textContent = String(palIndex[i] + 1);
+
+        div.onclick = () => paintIndex(i);
+        grid.appendChild(div);
+      }
+
+      statusMsg.textContent = "Bereit: Tippe/ziehe zum Malen.";
+    }
+
+    function paintTouch(e){
+      const t = e.touches[0];
+      const el = document.elementFromPoint(t.clientX, t.clientY);
+      if (el && el.classList && el.classList.contains('pixel')){
+        paintIndex(parseInt(el.dataset.i, 10));
+      }
+    }
+
+    function paintFromTarget(target){
+      if (!target || !target.classList || !target.classList.contains('pixel')) return;
+      paintIndex(parseInt(target.dataset.i, 10));
+    }
+
+    function paintIndex(i){
+      if (!imgObj) return;
+      const px = grid.querySelector(`.pixel[data-i="${i}"]`);
+      if (!px) return;
+
+      // eraser
+      if (eraser){
+        painted[i] = false;
+        px.style.background = 'white';
+        updateProgress();
+        return;
+      }
+
+      // auto: reveal original
+      if (paintMode === "auto"){
+        painted[i] = true;
+        const c = paintRgb[i];
+        px.style.background = `rgb(${c.r},${c.g},${c.b})`;
+        updateProgress();
+        return;
+      }
+
+      // guided: only if chosen matches (tolerance)
+      if (paintMode === "guided"){
+        const tol = parseInt(tolerance.value, 10);
+        const cellPal = pal[palIndex[i]];
+        const chosen = pal[activePalIndex];
+        const ok = Math.sqrt(dist2(cellPal, chosen)) <= tol;
+        if (!ok) return;
+
+        painted[i] = true;
+        px.style.background = `rgb(${chosen.r},${chosen.g},${chosen.b})`;
+        updateProgress();
+        return;
+      }
+
+      // free: paint anywhere with chosen
+      if (paintMode === "free"){
+        const chosen = pal[activePalIndex];
+        painted[i] = true;
+        px.style.background = `rgb(${chosen.r},${chosen.g},${chosen.b})`;
+        updateProgress();
+        return;
+      }
+    }
+
+    function resetPaint(){
+      if (!imgObj) return;
+      painted.fill(false);
+      drawPaintGrid();
+      updateProgress();
+      statusMsg.textContent = "Zurückgesetzt. Du kannst neu malen.";
+    }
+
+    function updateProgress(){
+      const total = painted.length || 1;
+      let done = 0;
+      for (const v of painted) if (v) done++;
+      const pct = Math.round((done / total) * 100);
+      progressBar.style.width = pct + "%";
+      progressText.textContent = pct + "%";
+    }
+
+    // Helper for redraw (not strict; used only when rebuilding same size)
+    function getComputedStylePaintColor(i, pxEl){
+      if (paintMode === "auto"){
+        const c = paintRgb[i];
+        return `rgb(${c.r},${c.g},${c.b})`;
+      }
+      // fallback for other modes: use cell palette color
+      const c = pal[palIndex[i]] || {r:0,g:0,b:0};
+      return `rgb(${c.r},${c.g},${c.b})`;
+    }
+
+    // -----------------------------
+    // Export: print/download what child painted (partial ok)
+    // -----------------------------
+    function buildPaintedCanvasFromDOM(){
+      const cell = 20;
+      const c = document.createElement('canvas');
+      c.width = paintCols * cell;
+      c.height = paintRows * cell;
+      const ctx = c.getContext('2d');
+
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0,0,c.width,c.height);
+
+      const pixels = grid.querySelectorAll('.pixel');
+      pixels.forEach(px => {
+        const i = parseInt(px.dataset.i, 10);
+        if (!painted[i]) return;
+
+        const x = i % paintCols;
+        const y = Math.floor(i / paintCols);
+
+        ctx.fillStyle = getComputedStyle(px).backgroundColor;
+        ctx.fillRect(x*cell, y*cell, cell, cell);
+      });
+      return c;
+    }
+
+    function printPainted(){
+      if (!imgObj) return;
+      const c = buildPaintedCanvasFromDOM();
+      openPrintWindow("Gemaltes Bild", c.toDataURL("image/png"), false);
+    }
+
+    function downloadPNG(){
+      if (!imgObj) return;
+      const c = buildPaintedCanvasFromDOM();
+      const a = document.createElement('a');
+      a.href = c.toDataURL("image/png");
+      a.download = "gemaltes-bild.png";
+      a.click();
+    }
+
+    // Worksheet: numbers + legend
+    function printWorksheet(){
+      if (!imgObj) return;
+
+      const cell = 18, pad = 20, legendW = 260;
+      const sheetW = pad*2 + paintCols*cell + legendW;
+      const sheetH = pad*2 + paintRows*cell + 30;
+
+      const c = document.createElement('canvas');
+      c.width = sheetW;
+      c.height = sheetH;
+      const ctx = c.getContext('2d');
+
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0,0,sheetW,sheetH);
+
+      ctx.fillStyle = "#111827";
+      ctx.font = "bold 16px Arial";
+      ctx.fillText("Montessorischule Stadt Kleve – Malen nach Zahlen", pad, 22);
+
+      const ox = pad;
+      const oy = pad + 20;
+
+      ctx.font = "bold 10px Arial";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+
+      let idx = 0;
+      for (let y=0; y<paintRows; y++){
+        for (let x=0; x<paintCols; x++){
+          const n = palIndex[idx] + 1;
+
+          ctx.fillStyle = "#ffffff";
+          ctx.fillRect(ox + x*cell, oy + y*cell, cell, cell);
+
+          ctx.strokeStyle = "#cbd5e1";
+          ctx.strokeRect(ox + x*cell, oy + y*cell, cell, cell);
+
+          ctx.fillStyle = "#111827";
+          ctx.fillText(String(n), ox + x*cell + cell/2, oy + y*cell + cell/2);
+
+          idx++;
+        }
+      }
+
+      const lx = ox + paintCols*cell + 25;
+      const ly = oy + 10;
+
+      ctx.textAlign = "left";
+      ctx.textBaseline = "alphabetic";
+      ctx.fillStyle = "#111827";
+      ctx.font = "bold 14px Arial";
+      ctx.fillText("Legende", lx, ly);
+
+      ctx.font = "12px Arial";
+      for (let i=0; i<pal.length; i++){
+        const y = ly + 18 + i*22;
+        ctx.fillStyle = `rgb(${pal[i].r},${pal[i].g},${pal[i].b})`;
+        ctx.fillRect(lx, y-12, 16, 16);
+        ctx.strokeStyle = "#111827";
+        ctx.strokeRect(lx, y-12, 16, 16);
+
+        ctx.fillStyle = "#111827";
+        ctx.fillText(`${i+1}`, lx + 26, y);
+      }
+
+      openPrintWindow("Arbeitsblatt", c.toDataURL("image/png"), true);
+    }
+
+    function openPrintWindow(title, dataUrl, landscape){
+      const w = window.open("", "_blank");
+      w.document.write(`
+        <!DOCTYPE html>
+        <html lang="de">
+        <head>
+          <meta charset="UTF-8" />
+          <meta name="viewport" content="width=device-width,initial-scale=1" />
+          <title>${title}</title>
+          <style>
+            body{ font-family: Arial, sans-serif; margin: 20px; }
+            h1{ font-size: 18px; margin: 0 0 12px 0; }
+            img{ max-width: 100%; height: auto; image-rendering: pixelated; }
+            .box{ display:inline-block; border: 2px solid #000; padding: 10px; background:#fff; }
+            @media print{
+              button{ display:none; }
+              body{ margin:0; }
+              .box{ border:none; padding:0; }
+              @page { size: ${landscape ? "landscape" : "portrait"}; margin: 10mm; }
+            }
+          </style>
+        </head>
+        <body>
+          <h1>${title}</h1>
+          <div class="box"><img src="${dataUrl}" alt="${title}" /></div>
+          <div style="margin-top:12px;">
+            <button onclick="window.print()">🖨️ Drucken</button>
+          </div>
+        </body>
+        </html>
+      `);
+      w.document.close();
+      w.focus();
+    }
+
+    // -----------------------------
+    // Init
+    // -----------------------------
+    buildGallery();
+    setPaintMode("guided");
+
+    // label init
+    lvlLabel.textContent = pixelLevel.value;
+    tolLabel.textContent = tolerance.value;
+    palLabel.textContent = paletteSize.value;
+  </script>
+</body>
+</html>
